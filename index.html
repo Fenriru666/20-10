@@ -957,94 +957,15 @@
       0% { transform: translate(-50%, -50%) scale(0.4); opacity: 1; }
       100% { transform: translate(-50%, -40px) scale(1.5); opacity: 0; }
     }
-    /* Floating Zing MP3 Player Drawer */
-    .zing-player-drawer {
-      position: fixed;
-      top: calc(65px + env(safe-area-inset-top, 0));
-      left: 18px;
-      width: min(calc(100vw - 36px), 460px);
-      background: rgba(255, 255, 255, 0.95);
-      backdrop-filter: blur(20px);
-      -webkit-backdrop-filter: blur(20px);
-      border: 2px solid rgba(255, 255, 255, 0.98);
-      border-radius: 24px;
-      box-shadow: 0 16px 45px rgba(136, 14, 79, 0.25);
-      z-index: 2000;
-      overflow: hidden;
-      transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-      transform: translateY(-15px) scale(0.96);
-      opacity: 0;
-      pointer-events: none;
-    }
-
-    .zing-player-drawer.active {
-      transform: translateY(0) scale(1);
-      opacity: 1;
-      pointer-events: auto;
-    }
-
-    .zing-drawer-header {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      padding: 10px 16px 8px;
-      font-size: 0.84rem;
-      font-weight: 700;
-      color: var(--pink-dark);
-      background: #fff0f5;
-      border-bottom: 1px solid #f8bbd0;
-    }
-
-    .zing-drawer-close {
-      background: none;
-      border: none;
-      font-size: 1.15rem;
-      color: var(--pink-medium);
-      cursor: pointer;
-      padding: 2px 8px;
-      border-radius: 50%;
-      line-height: 1;
-    }
-
-    .zing-iframe-container {
-      width: 100%;
-      height: 180px;
-      background: #000000;
-      display: flex;
-    }
-
-    .zing-iframe-container iframe {
-      width: 100%;
-      height: 100%;
-      border: none;
-      display: block;
-    }
   </style>
 </head>
 <body>
 
-  <!-- Audio Element: Đặt file music.mp3 vào thư mục để tự động chạy mượt mà 100% -->
-  <audio id="bg-audio" src="music.mp3" loop preload="auto"></audio>
-
-  <!-- Floating Zing MP3 Player Drawer -->
-  <div id="zing-player-drawer" class="zing-player-drawer">
-    <div class="zing-drawer-header">
-      <span>🎼 Trình phát nhạc Zing MP3</span>
-      <button class="zing-drawer-close" onclick="togglePlayerDrawer()" title="Đóng bảng">✕</button>
-    </div>
-    <div class="zing-iframe-container">
-      <iframe 
-        id="zing-mp3-iframe" 
-        scrolling="no" 
-        width="100%" 
-        height="180" 
-        src="https://zingmp3.vn/embed/song/7GVIEKQ7OAuU?start=true" 
-        frameborder="0" 
-        allow="autoplay; encrypted-media" 
-        allowfullscreen="true">
-      </iframe>
-    </div>
-  </div>
+  <!-- Audio Element: Tự động chạy bài hát Em Xinh.mp3 / music.mp3 -->
+  <audio id="bg-audio" loop preload="auto">
+    <source src="Em Xinh.mp3" type="audio/mpeg">
+    <source src="music.mp3" type="audio/mpeg">
+  </audio>
 
   <!-- Animated Aurora Mesh Overlay -->
   <div class="aurora-bg"></div>
@@ -1053,23 +974,17 @@
   <canvas id="petals-canvas"></canvas>
   <canvas id="fireworks-canvas"></canvas>
 
-  <!-- Top Controls: Sound Toggle & Zing MP3 Expand -->
+  <!-- Top Controls: Sound Toggle Only (No lock button) -->
   <div class="top-controls">
-    <div style="display: flex; gap: 8px; align-items: center; pointer-events: auto;">
-      <button id="sound-btn" class="control-btn" onclick="toggleAudio()" title="Bật/Tắt âm thanh">
-        <span id="sound-icon">🎵</span>
-        <span id="sound-label">Nhạc: Bật</span>
-        <div class="eq-bars playing" id="eq-bars">
-          <div class="eq-bar"></div>
-          <div class="eq-bar"></div>
-          <div class="eq-bar"></div>
-        </div>
-      </button>
-      <button id="player-toggle-btn" class="control-btn" onclick="togglePlayerDrawer()" title="Xem trình phát nhạc Zing MP3" style="padding: 10px 14px;">
-        <span>🎧</span>
-        <span style="font-size: 0.82rem;">Zing MP3</span>
-      </button>
-    </div>
+    <button id="sound-btn" class="control-btn" onclick="toggleAudio()" title="Bật/Tắt âm thanh">
+      <span id="sound-icon">🎵</span>
+      <span id="sound-label">Nhạc: Bật</span>
+      <div class="eq-bars playing" id="eq-bars">
+        <div class="eq-bar"></div>
+        <div class="eq-bar"></div>
+        <div class="eq-bar"></div>
+      </div>
+    </button>
   </div>
 
   <!-- ================= SCREEN 1: UNIFIED SECURITY KEYPAD ================= -->
@@ -1605,24 +1520,13 @@
 
     function startMusic() {
       if (!isSoundOn) return;
-
-      // 1. Ưu tiên phát file music.mp3 nội bộ nếu có (tự động chạy 100% mượt mà)
       if (bgAudio) {
         bgAudio.play().then(() => {
-          isLocalAudioPlaying = true;
-          // Có file mp3 nội bộ thì tắt Zing MP3 để không bị trùng tiếng
-          if (zingIframe) zingIframe.src = "about:blank";
           const eq = document.getElementById('eq-bars');
           if (eq) eq.classList.add('playing');
-        }).catch(() => {
-          isLocalAudioPlaying = false;
-          // Nếu chưa có file music.mp3, chạy nguồn Zing MP3
-          if (zingIframe && (!zingIframe.src || zingIframe.src === "about:blank")) {
-            zingIframe.src = ZING_EMBED_URL;
-          }
+        }).catch((err) => {
+          console.log("Audio autoplay waiting for user gesture:", err);
         });
-      } else if (zingIframe && (!zingIframe.src || zingIframe.src === "about:blank")) {
-        zingIframe.src = ZING_EMBED_URL;
       }
     }
 
@@ -1637,16 +1541,13 @@
         icon.textContent = '🎵';
         label.textContent = 'Nhạc: Bật';
         eq.classList.add('playing');
-
         startMusic();
-        showToast('Đang bật âm thanh 💕');
+        showToast('Đang phát nhạc: Em Xinh 💕');
       } else {
         icon.textContent = '🔇';
         label.textContent = 'Nhạc: Tắt';
         eq.classList.remove('playing');
-
         if (bgAudio) bgAudio.pause();
-        if (zingIframe) zingIframe.src = "about:blank";
         showToast('Đã tắt âm thanh');
       }
     }
