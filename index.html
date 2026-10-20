@@ -961,10 +961,11 @@
 </head>
 <body>
 
-  <!-- Audio Element: Tự động chạy bài hát Em Xinh.mp3 / music.mp3 -->
-  <audio id="bg-audio" loop preload="auto">
-    <source src="Em Xinh.mp3" type="audio/mpeg">
+  <!-- Audio Element: Tự động chạy bài hát music.mp3 / 20-10.mp3 -->
+  <audio id="bg-audio" src="music.mp3" loop preload="auto">
     <source src="music.mp3" type="audio/mpeg">
+    <source src="20-10.mp3" type="audio/mpeg">
+    <source src="20/10.mp3" type="audio/mpeg">
   </audio>
 
   <!-- Animated Aurora Mesh Overlay -->
@@ -1542,7 +1543,7 @@
         label.textContent = 'Nhạc: Bật';
         eq.classList.add('playing');
         startMusic();
-        showToast('Đang phát nhạc: Em Xinh 💕');
+        showToast('Đang phát nhạc 20/10 💕');
       } else {
         icon.textContent = '🔇';
         label.textContent = 'Nhạc: Tắt';
@@ -1554,18 +1555,25 @@
 
     // Tự động kích hoạt phát nhạc ngay khi người dùng chạm hoặc bấm phím bất kỳ
     window.addEventListener('pointerdown', () => {
-      if (!hasUserInteracted) {
-        hasUserInteracted = true;
-        startMusic();
-      }
+      startMusic();
+    }, { once: true });
+
+    window.addEventListener('touchstart', () => {
+      startMusic();
+    }, { once: true });
+
+    window.addEventListener('click', () => {
+      startMusic();
     }, { once: true });
 
     window.addEventListener('keydown', () => {
-      if (!hasUserInteracted) {
-        hasUserInteracted = true;
-        startMusic();
-      }
+      startMusic();
     }, { once: true });
+
+    // Thử kích hoạt phát nhạc ngay khi tải trang
+    document.addEventListener('DOMContentLoaded', () => {
+      startMusic();
+    });
 
     /* ================================================================
        5. UNIFIED KEYPAD LOGIC (2 CODES: 2010 -> Public, 2404 -> Lover)
@@ -1595,6 +1603,7 @@
     }
 
     function pressPubKey(digit) {
+      startMusic();
       triggerHaptic(14);
       if (pubCurrentCode.length < 4) {
         pubCurrentCode += digit;
