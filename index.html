@@ -1023,6 +1023,9 @@
 </head>
 <body>
 
+  <!-- Audio Element: Đặt file music.mp3 vào thư mục để tự động chạy mượt mà 100% -->
+  <audio id="bg-audio" src="music.mp3" loop preload="auto"></audio>
+
   <!-- Floating Zing MP3 Player Drawer -->
   <div id="zing-player-drawer" class="zing-player-drawer">
     <div class="zing-drawer-header">
@@ -1586,15 +1589,40 @@
       } catch (e) {}
     }
 
+    const bgAudio = document.getElementById('bg-audio');
     const ZING_EMBED_URL = "https://zingmp3.vn/embed/song/7GVIEKQ7OAuU?start=true";
     const zingIframe = document.getElementById('zing-mp3-iframe');
     let hasUserInteracted = false;
+    let isLocalAudioPlaying = false;
 
     function togglePlayerDrawer() {
       triggerHaptic(12);
       const drawer = document.getElementById('zing-player-drawer');
       if (drawer) {
         drawer.classList.toggle('active');
+      }
+    }
+
+    function startMusic() {
+      if (!isSoundOn) return;
+
+      // 1. Ưu tiên phát file music.mp3 nội bộ nếu có (tự động chạy 100% mượt mà)
+      if (bgAudio) {
+        bgAudio.play().then(() => {
+          isLocalAudioPlaying = true;
+          // Có file mp3 nội bộ thì tắt Zing MP3 để không bị trùng tiếng
+          if (zingIframe) zingIframe.src = "about:blank";
+          const eq = document.getElementById('eq-bars');
+          if (eq) eq.classList.add('playing');
+        }).catch(() => {
+          isLocalAudioPlaying = false;
+          // Nếu chưa có file music.mp3, chạy nguồn Zing MP3
+          if (zingIframe && (!zingIframe.src || zingIframe.src === "about:blank")) {
+            zingIframe.src = ZING_EMBED_URL;
+          }
+        });
+      } else if (zingIframe && (!zingIframe.src || zingIframe.src === "about:blank")) {
+        zingIframe.src = ZING_EMBED_URL;
       }
     }
 
@@ -1609,30 +1637,32 @@
         icon.textContent = '🎵';
         label.textContent = 'Nhạc: Bật';
         eq.classList.add('playing');
-        if (zingIframe) {
-          zingIframe.src = ZING_EMBED_URL;
-        }
-        showToast('Đang phát nhạc Zing MP3 💕');
+
+        startMusic();
+        showToast('Đang bật âm thanh 💕');
       } else {
         icon.textContent = '🔇';
         label.textContent = 'Nhạc: Tắt';
         eq.classList.remove('playing');
-        if (zingIframe) {
-          zingIframe.src = "about:blank";
-        }
+
+        if (bgAudio) bgAudio.pause();
+        if (zingIframe) zingIframe.src = "about:blank";
         showToast('Đã tắt âm thanh');
       }
     }
 
-    // Tự động kích hoạt phát nhạc Zing MP3 ngay khi chạm lần đầu trên màn hình
+    // Tự động kích hoạt phát nhạc ngay khi người dùng chạm hoặc bấm phím bất kỳ
     window.addEventListener('pointerdown', () => {
       if (!hasUserInteracted) {
         hasUserInteracted = true;
-        if (isSoundOn && zingIframe) {
-          if (!zingIframe.src || zingIframe.src === "about:blank") {
-            zingIframe.src = ZING_EMBED_URL;
-          }
-        }
+        startMusic();
+      }
+    }, { once: true });
+
+    window.addEventListener('keydown', () => {
+      if (!hasUserInteracted) {
+        hasUserInteracted = true;
+        startMusic();
       }
     }, { once: true });
 
